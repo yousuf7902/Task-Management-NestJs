@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AllExceptionsFilter = void 0;
 const common_1 = require("@nestjs/common");
-const logger_util_1 = require("../../Utils/logger.util");
+const logger_util_1 = require("../../utils/logger.util");
 let AllExceptionsFilter = class AllExceptionsFilter {
     constructor(logger) {
         this.logger = logger;
@@ -23,15 +23,20 @@ let AllExceptionsFilter = class AllExceptionsFilter {
         const status = exception instanceof common_1.HttpException
             ? exception.getStatus()
             : common_1.HttpStatus.INTERNAL_SERVER_ERROR;
-        const message = exception instanceof common_1.HttpException
-            ? exception.getResponse()
-            : 'Internal server error';
+        let message = "";
+        if (exception instanceof common_1.HttpException) {
+            const response = exception.getResponse();
+            message = response.message[0];
+        }
+        else {
+            message = "Internal server error";
+        }
         const errorResponse = {
             statusCode: status,
             path: request.url,
-            message,
+            errorMessage: message,
         };
-        this.logger.error(`${request.method} ${request.url}`, JSON.stringify(errorResponse), 'ExceptionFilter');
+        this.logger.error(`${request.method} ${request.url}`, JSON.stringify(errorResponse), "ExceptionFilter");
         response.status(status).json(errorResponse);
     }
 };
