@@ -29,25 +29,46 @@ let TasksController = class TasksController {
             data: data,
         });
     }
-    createTasks(createTaskDto, req, res) {
-        const data = this.taskService.create(createTaskDto);
+    async createTasks(createTaskDto, req, res) {
+        const data = await this.taskService.create(createTaskDto);
         res.status(201).json({
             statusCode: 201,
             message: "Task created successfully...",
             data: data
         });
     }
-    async filterTask(status, req, res) { }
-    async getTaskById(id, req, res) { }
+    async filterTask(status, req, res) {
+        const data = await this.taskService.filterTask(status);
+        return res.status(200).json({
+            statusCode: 200,
+            message: "Task filltered successfully...",
+            data: data
+        });
+    }
+    async getTaskById(id, req, res) {
+        const data = await this.taskService.findById(id);
+        return res.status(200).json({
+            statusCode: 200,
+            message: "Task fetched successfully...",
+            data: data
+        });
+    }
     async updateTask(id, updateTaskDto, req, res) {
-        const data = this.taskService.update(id, updateTaskDto);
+        const data = await this.taskService.update(id, updateTaskDto);
         return res.status(200).json({
             statusCode: 200,
             message: "Task updated successfully...",
             data: data
         });
     }
-    async deleteTask(id, req, res) { }
+    async deleteTask(id, req, res) {
+        const data = await this.taskService.delete(id);
+        return res.status(200).json({
+            statusCode: 200,
+            message: "Task deleted successfully...",
+            data: data
+        });
+    }
 };
 exports.TasksController = TasksController;
 __decorate([
@@ -65,7 +86,7 @@ __decorate([
     __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_task_dto_1.CreateTaskDto, Object, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], TasksController.prototype, "createTasks", null);
 __decorate([
     (0, common_1.Get)(),

@@ -31,8 +31,8 @@ export class TasksController {
   }
 
   @Post()
-  createTasks(@Body() createTaskDto:CreateTaskDto ,@Res() req: Request, @Res() res: Response) {
-    const data = this.taskService.create(createTaskDto);
+  async createTasks(@Body() createTaskDto:CreateTaskDto ,@Res() req: Request, @Res() res: Response) {
+    const data = await this.taskService.create(createTaskDto);
     res.status(201).json({
         statusCode: 201, 
         message: "Task created successfully...",
@@ -45,14 +45,28 @@ export class TasksController {
     @Query("status") status: string,
     @Req() req: Request,
     @Res() res: Response
-  ) {}
+  ) {
+    const data = await this.taskService.filterTask(status);
+    return res.status(200).json({
+        statusCode: 200,
+        message: "Task filltered successfully...",
+        data:data
+    })
+  }
 
   @Get(":id")
   async getTaskById(
     @Param("id", ParseIntPipe) id: number,
     @Req() req: Request,
     @Res() res: Response
-  ) {}
+  ) {
+    const data = await this.taskService.findById(id);
+    return res.status(200).json({
+        statusCode: 200,
+        message: "Task fetched successfully...",
+        data:data
+    })
+  }
 
   @Put(":id")
   async updateTask(
@@ -61,7 +75,7 @@ export class TasksController {
     @Req() req: Request,
     @Res() res: Response
   ) {
-    const data = this.taskService.update(id, updateTaskDto);
+    const data = await this.taskService.update(id, updateTaskDto);
     return res.status(200).json({
         statusCode: 200, 
         message: "Task updated successfully...",
@@ -74,5 +88,12 @@ export class TasksController {
     @Param("id", ParseIntPipe) id: number,
     @Req() req: Request,
     @Res() res: Response
-  ) {}
+  ) {
+    const data = await this.taskService.delete(id);
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Task deleted successfully...",
+      data:data
+    })
+  }
 }

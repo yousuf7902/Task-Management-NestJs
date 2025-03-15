@@ -26,7 +26,7 @@ let AllExceptionsFilter = class AllExceptionsFilter {
         let message = "";
         if (exception instanceof common_1.HttpException) {
             const response = exception.getResponse();
-            message = response.message[0];
+            message = response.message;
         }
         else {
             message = "Internal server error";
