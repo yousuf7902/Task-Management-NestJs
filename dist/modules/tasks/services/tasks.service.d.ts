@@ -1,18 +1,15 @@
-import { ITask, TaskStatus } from "../model/task.model";
 import { CreateTaskDto } from "../dto/create-task.dto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
+import { Task } from "../entities/task.entity";
+import { Repository } from "typeorm";
 export declare class TasksService {
+    private taskRepository;
     private tasks;
-    findAllTasks(): Promise<ITask[]>;
-    findById(id: number): Promise<ITask>;
-    filterTask(status: string): Promise<ITask[]>;
-    create(createTaskDto: CreateTaskDto): ITask;
-    update(id: number, updateTaskDto: UpdateTaskDto): Promise<{
-        title: string;
-        description: string;
-        status: TaskStatus;
-        id: number;
-    }>;
+    constructor(taskRepository: Repository<Task>);
+    findAllTasks(status: string): Promise<Task[]>;
+    findById(id: number): Promise<Task>;
+    create(createTaskDto: CreateTaskDto): Promise<Task>;
+    update(id: number, updateTaskDto: UpdateTaskDto): Promise<void>;
     private isValidStatus;
-    delete(id: number): ITask[];
+    delete(id: number): Promise<import("typeorm").DeleteResult>;
 }

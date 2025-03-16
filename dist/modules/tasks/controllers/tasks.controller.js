@@ -17,66 +17,68 @@ const common_1 = require("@nestjs/common");
 const tasks_service_1 = require("../services/tasks.service");
 const create_task_dto_1 = require("../dto/create-task.dto");
 const update_task_dto_1 = require("../dto/update-task-dto");
+const send_response_utils_1 = require("../../../utils/send-response.utils");
 let TasksController = class TasksController {
     constructor(taskService) {
         this.taskService = taskService;
     }
-    async getAllTasks(req, res) {
-        const data = await this.taskService.findAllTasks();
-        res.status(200).json({
-            statusCode: 200,
-            message: "Success",
-            data: data,
-        });
+    async getAllTasks(status, req, res) {
+        try {
+            const data = await this.taskService.findAllTasks(status);
+            if (!status) {
+                (0, send_response_utils_1.sendResponse)(res, 200, 'Data fetched successfully...', data);
+            }
+            (0, send_response_utils_1.sendResponse)(res, 200, 'Task filtered successfully...', data);
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async createTasks(createTaskDto, req, res) {
-        const data = await this.taskService.create(createTaskDto);
-        res.status(201).json({
-            statusCode: 201,
-            message: "Task created successfully...",
-            data: data
-        });
-    }
-    async filterTask(status, req, res) {
-        const data = await this.taskService.filterTask(status);
-        return res.status(200).json({
-            statusCode: 200,
-            message: "Task filltered successfully...",
-            data: data
-        });
+        try {
+            const data = await this.taskService.create(createTaskDto);
+            (0, send_response_utils_1.sendResponse)(res, 201, "Task created successfully...", data);
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async getTaskById(id, req, res) {
-        const data = await this.taskService.findById(id);
-        return res.status(200).json({
-            statusCode: 200,
-            message: "Task fetched successfully...",
-            data: data
-        });
+        try {
+            const data = await this.taskService.findById(id);
+            (0, send_response_utils_1.sendResponse)(res, 200, "Task fetched successfully...", data);
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async updateTask(id, updateTaskDto, req, res) {
-        const data = await this.taskService.update(id, updateTaskDto);
-        return res.status(200).json({
-            statusCode: 200,
-            message: "Task updated successfully...",
-            data: data
-        });
+        try {
+            const data = await this.taskService.update(id, updateTaskDto);
+            (0, send_response_utils_1.sendResponse)(res, 200, "Task updated successfully...", data);
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async deleteTask(id, req, res) {
-        const data = await this.taskService.delete(id);
-        return res.status(200).json({
-            statusCode: 200,
-            message: "Task deleted successfully...",
-            data: data
-        });
+        try {
+            const data = await this.taskService.delete(id);
+            (0, send_response_utils_1.sendResponse)(res, 200, "Task deleted successfully...", data);
+        }
+        catch (error) {
+            throw error;
+        }
     }
 };
 exports.TasksController = TasksController;
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Res)()),
+    __param(0, (0, common_1.Query)("status")),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "getAllTasks", null);
 __decorate([
@@ -88,15 +90,6 @@ __decorate([
     __metadata("design:paramtypes", [create_task_dto_1.CreateTaskDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "createTasks", null);
-__decorate([
-    (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)("status")),
-    __param(1, (0, common_1.Req)()),
-    __param(2, (0, common_1.Res)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, Object]),
-    __metadata("design:returntype", Promise)
-], TasksController.prototype, "filterTask", null);
 __decorate([
     (0, common_1.Get)(":id"),
     __param(0, (0, common_1.Param)("id", common_1.ParseIntPipe)),

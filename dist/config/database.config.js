@@ -14,6 +14,7 @@ class DatabaseConfigService {
             username: this.env.DB_USERNAME,
             password: this.env.DB_PASSWORD,
             database: this.env.DB_NAME,
+            entities: [__dirname + '/../**/*.entity{.ts,.js}'],
             synchronize: true,
             logging: false,
         };

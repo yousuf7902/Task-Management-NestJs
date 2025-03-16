@@ -5,68 +5,99 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TasksService = void 0;
 const common_1 = require("@nestjs/common");
 const task_model_1 = require("../model/task.model");
-const crypto_1 = require("crypto");
-const wrong_task_status_exception_1 = require("../../../exceptions/wrong-task-status-exception");
+const typeorm_1 = require("@nestjs/typeorm");
+const task_entity_1 = require("../entities/task.entity");
+const typeorm_2 = require("typeorm");
 let TasksService = class TasksService {
-    constructor() {
+    constructor(taskRepository) {
+        this.taskRepository = taskRepository;
         this.tasks = [];
     }
-    async findAllTasks() {
-        return this.tasks;
+    async findAllTasks(status) {
+        try {
+            if (!status) {
+                const data = await this.taskRepository.find();
+                return data;
+            }
+            const tasks = await this.taskRepository.findBy({ status: status });
+            if (tasks.length === 0) {
+                throw new common_1.NotFoundException("Task not found....");
+            }
+            return tasks;
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async findById(id) {
-        const task = this.tasks.find((task) => task.id === id);
-        if (!task) {
-            throw new common_1.NotFoundException("Task not found....");
+        try {
+            const task = await this.taskRepository.findOneBy({ taskId: id });
+            if (!task) {
+                throw new common_1.NotFoundException("Task not found....");
+            }
+            return task;
         }
-        return task;
-    }
-    async filterTask(status) {
-        const tasks = this.tasks.filter((task) => task.status === status);
-        if (tasks.length === 0) {
-            throw new common_1.NotFoundException("Task not found....");
+        catch (error) {
+            throw error;
         }
-        return tasks;
     }
-    create(createTaskDto) {
-        const task = {
-            id: (0, crypto_1.randomInt)(1000),
-            ...createTaskDto,
-        };
-        this.tasks.push(task);
-        return task;
+    async create(createTaskDto) {
+        try {
+            const task = this.taskRepository.create(createTaskDto);
+            await this.taskRepository.save(task);
+            return task;
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async update(id, updateTaskDto) {
-        const taskIndex = this.tasks.findIndex((task) => task.id === id);
-        if (taskIndex < 0) {
-            throw new common_1.NotFoundException("Task not found...");
+        try {
         }
-        if (updateTaskDto.status && !this.isValidStatus(this.tasks[taskIndex].status, updateTaskDto.status)) {
-            throw new wrong_task_status_exception_1.WrongTaskStatusException();
+        catch (error) {
+            throw error;
         }
-        const updateTask = { ...this.tasks[taskIndex], ...updateTaskDto };
-        this.tasks[taskIndex] = updateTask;
-        return updateTask;
     }
     isValidStatus(currentStatus, newStatus) {
-        const allowedStatus = [
-            task_model_1.TaskStatus.OPEN,
-            task_model_1.TaskStatus.IN_PROGRESS,
-            task_model_1.TaskStatus.DONE
-        ];
-        return allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus);
+        try {
+            const allowedStatus = [
+                task_model_1.TaskStatus.OPEN,
+                task_model_1.TaskStatus.IN_PROGRESS,
+                task_model_1.TaskStatus.DONE,
+            ];
+            return (allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus));
+        }
+        catch (error) {
+            throw error;
+        }
     }
-    delete(id) {
-        this.tasks = this.tasks.filter((task) => task.id !== id);
-        return this.tasks;
+    async delete(id) {
+        try {
+            const data = await this.taskRepository.findOneBy({ taskId: id });
+            if (!data) {
+                throw new common_1.NotFoundException();
+            }
+            return this.taskRepository.delete({ taskId: id });
+        }
+        catch (error) {
+            throw error;
+        }
     }
 };
 exports.TasksService = TasksService;
 exports.TasksService = TasksService = __decorate([
-    (0, common_1.Injectable)()
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(task_entity_1.Task)),
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], TasksService);
 //# sourceMappingURL=tasks.service.js.map
