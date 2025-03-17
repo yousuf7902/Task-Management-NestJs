@@ -22,6 +22,11 @@ __decorate([
 ], CreateTaskDto.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], CreateTaskDto.prototype, "userId", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateTaskDto.prototype, "description", void 0);

@@ -15,6 +15,9 @@ const database_config_1 = require("./config/database.config");
 const tasks_controller_1 = require("./modules/tasks/controllers/tasks.controller");
 const tasks_service_1 = require("./modules/tasks/services/tasks.service");
 const task_entity_1 = require("./modules/tasks/entities/task.entity");
+const users_module_1 = require("./modules/users/users.module");
+const users_controller_1 = require("./modules/users/controllers/users.controller");
+const user_entity_1 = require("./modules/users/entities/user.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -22,8 +25,8 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [config_1.ConfigModule.forRoot({
                 isGlobal: true,
-            }), typeorm_1.TypeOrmModule.forRoot(database_config_1.default.getTypeOrmConfig()), typeorm_1.TypeOrmModule.forFeature([task_entity_1.Task]), tasks_module_1.TasksModule],
-        controllers: [tasks_controller_1.TasksController],
+            }), typeorm_1.TypeOrmModule.forRoot(database_config_1.default.getTypeOrmConfig()), typeorm_1.TypeOrmModule.forFeature([task_entity_1.Task, user_entity_1.User]), tasks_module_1.TasksModule, users_module_1.UsersModule],
+        controllers: [tasks_controller_1.TasksController, users_controller_1.UsersController],
         providers: [tasks_service_1.TasksService],
     })
 ], AppModule);

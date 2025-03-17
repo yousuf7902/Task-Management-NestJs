@@ -9,41 +9,32 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Task = void 0;
+exports.User = void 0;
 const typeorm_1 = require("typeorm");
-const task_model_1 = require("../model/task.model");
-let Task = class Task {
+let User = class User {
 };
-exports.Task = Task;
+exports.User = User;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], Task.prototype, "taskId", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'int', nullable: false }),
-    __metadata("design:type", Number)
-], Task.prototype, "userId", void 0);
+], User.prototype, "userId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'varchar', nullable: false }),
     __metadata("design:type", String)
-], Task.prototype, "title", void 0);
+], User.prototype, "name", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'varchar', nullable: false }),
     __metadata("design:type", String)
-], Task.prototype, "description", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: task_model_1.TaskStatus, default: task_model_1.TaskStatus.OPEN }),
-    __metadata("design:type", String)
-], Task.prototype, "status", void 0);
+], User.prototype, "email", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
-], Task.prototype, "createdAt", void 0);
+], User.prototype, "createdAt", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
-], Task.prototype, "updatedAt", void 0);
-exports.Task = Task = __decorate([
-    (0, typeorm_1.Entity)('tasks')
-], Task);
-//# sourceMappingURL=task.entity.js.map
+], User.prototype, "updatedAt", void 0);
+exports.User = User = __decorate([
+    (0, typeorm_1.Entity)('users')
+], User);
+//# sourceMappingURL=user.entity.js.map

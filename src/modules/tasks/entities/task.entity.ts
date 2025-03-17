@@ -6,6 +6,9 @@ export class Task{
     @PrimaryGeneratedColumn()
     taskId: number;
 
+    @Column({type: 'int', nullable:false})
+    userId: number;
+
     @Column({type: 'varchar', nullable: false})
     title:string;
 

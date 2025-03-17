@@ -21,7 +21,6 @@ const typeorm_2 = require("typeorm");
 let TasksService = class TasksService {
     constructor(taskRepository) {
         this.taskRepository = taskRepository;
-        this.tasks = [];
     }
     async findAllTasks(status) {
         try {
@@ -81,19 +80,6 @@ let TasksService = class TasksService {
             throw error;
         }
     }
-    isValidStatus(currentStatus, newStatus) {
-        try {
-            const allowedStatus = [
-                "OPEN",
-                "IN_PROGRESS",
-                "DONE",
-            ];
-            return (allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus));
-        }
-        catch (error) {
-            throw error;
-        }
-    }
     async delete(id) {
         try {
             const data = await this.taskRepository.findOneBy({ taskId: id });
@@ -101,6 +87,15 @@ let TasksService = class TasksService {
                 throw new common_1.NotFoundException();
             }
             return this.taskRepository.delete({ taskId: id });
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    isValidStatus(currentStatus, newStatus) {
+        try {
+            const allowedStatus = ["OPEN", "IN_PROGRESS", "DONE"];
+            return (allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus));
         }
         catch (error) {
             throw error;
