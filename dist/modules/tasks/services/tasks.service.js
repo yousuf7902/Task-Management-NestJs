@@ -14,7 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TasksService = void 0;
 const common_1 = require("@nestjs/common");
-const task_model_1 = require("../model/task.model");
+const wrong_task_status_exception_1 = require("../../../exceptions/wrong-task-status-exception");
 const typeorm_1 = require("@nestjs/typeorm");
 const task_entity_1 = require("../entities/task.entity");
 const typeorm_2 = require("typeorm");
@@ -63,6 +63,19 @@ let TasksService = class TasksService {
     }
     async update(id, updateTaskDto) {
         try {
+            const data = await this.taskRepository.findOneBy({ taskId: id });
+            if (!data) {
+                throw new common_1.NotFoundException("Task not found...");
+            }
+            if (updateTaskDto.status &&
+                !this.isValidStatus(data.status, updateTaskDto.status)) {
+                throw new wrong_task_status_exception_1.WrongTaskStatusException();
+            }
+            const updateTask = await this.taskRepository.save({
+                ...data,
+                ...updateTaskDto,
+            });
+            return updateTask;
         }
         catch (error) {
             throw error;
@@ -71,9 +84,9 @@ let TasksService = class TasksService {
     isValidStatus(currentStatus, newStatus) {
         try {
             const allowedStatus = [
-                task_model_1.TaskStatus.OPEN,
-                task_model_1.TaskStatus.IN_PROGRESS,
-                task_model_1.TaskStatus.DONE,
+                "OPEN",
+                "IN_PROGRESS",
+                "DONE",
             ];
             return (allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus));
         }

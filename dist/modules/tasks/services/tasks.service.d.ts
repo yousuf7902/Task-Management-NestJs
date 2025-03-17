@@ -9,7 +9,14 @@ export declare class TasksService {
     findAllTasks(status: string): Promise<Task[]>;
     findById(id: number): Promise<Task>;
     create(createTaskDto: CreateTaskDto): Promise<Task>;
-    update(id: number, updateTaskDto: UpdateTaskDto): Promise<void>;
+    update(id: number, updateTaskDto: UpdateTaskDto): Promise<{
+        title: string;
+        description: string;
+        status: string;
+        taskId: number;
+        createdAt: Date;
+        updatedAt: Date;
+    } & Task>;
     private isValidStatus;
     delete(id: number): Promise<import("typeorm").DeleteResult>;
 }

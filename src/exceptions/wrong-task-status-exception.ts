@@ -1,8 +1,7 @@
 import { HttpException } from "@nestjs/common";
 
-export class WrongTaskStatusException extends Error{
-    constructor(){
-    super("Wrong task status transition!...");
-    this.name = "WrongTaskStatusException";
-    }
+export class WrongTaskStatusException extends HttpException{
+    constructor() {
+        super("Wrong task status transition!...", 400);
+      }
 }

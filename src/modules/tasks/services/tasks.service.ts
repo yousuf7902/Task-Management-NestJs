@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { ITask, TaskStatus } from "../model/task.model";
 import { CreateTaskDto } from "../dto/create-task.dto";
-import { randomInt } from "crypto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
 import { WrongTaskStatusException } from "src/exceptions/wrong-task-status-exception";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -59,35 +58,39 @@ export class TasksService {
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
     try {
-      // const taskIndex = this.tasks.findIndex((task) => task.taskId === id);
-      // if (taskIndex < 0) {
-      //   throw new NotFoundException("Task not found...");
-      // }
+      const data= await this.taskRepository.findOneBy({taskId: id});
 
-      // if (
-      //   updateTaskDto.status &&
-      //   !this.isValidStatus(this.tasks[taskIndex].status, updateTaskDto.status)
-      // ) {
-      //   throw new WrongTaskStatusException();
-      // }
+      if(!data){
+        throw new NotFoundException("Task not found...");
+      }
 
-      // const updateTask = { ...this.tasks[taskIndex], ...updateTaskDto };
-      // this.tasks[taskIndex] = updateTask;
-      // return updateTask;
+      if (
+        updateTaskDto.status &&
+        !this.isValidStatus(data.status, updateTaskDto.status)
+      ) {
+        throw new WrongTaskStatusException();
+      }
+      
+      const updateTask = await this.taskRepository.save({
+        ...data,
+        ...updateTaskDto,
+      });
+      return updateTask;
+
     } catch (error) {
       throw error;
     }
   }
 
   private isValidStatus(
-    currentStatus: TaskStatus,
-    newStatus: TaskStatus
+    currentStatus: string,
+    newStatus: string
   ): boolean {
     try {
       const allowedStatus = [
-        TaskStatus.OPEN,
-        TaskStatus.IN_PROGRESS,
-        TaskStatus.DONE,
+        "OPEN",
+        "IN_PROGRESS",
+        "DONE",
       ];
 
       return (
