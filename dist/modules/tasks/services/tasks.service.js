@@ -21,7 +21,6 @@ const typeorm_2 = require("typeorm");
 let TasksService = class TasksService {
     constructor(taskRepository) {
         this.taskRepository = taskRepository;
-        this.tasks = [];
     }
     async findAllTasks(status) {
         try {
@@ -83,11 +82,7 @@ let TasksService = class TasksService {
     }
     isValidStatus(currentStatus, newStatus) {
         try {
-            const allowedStatus = [
-                "OPEN",
-                "IN_PROGRESS",
-                "DONE",
-            ];
+            const allowedStatus = ["OPEN", "IN_PROGRESS", "DONE"];
             return (allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus));
         }
         catch (error) {
