@@ -80,6 +80,15 @@ let TasksService = class TasksService {
             throw error;
         }
     }
+    isValidStatus(currentStatus, newStatus) {
+        try {
+            const allowedStatus = ["OPEN", "IN_PROGRESS", "DONE"];
+            return (allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus));
+        }
+        catch (error) {
+            throw error;
+        }
+    }
     async delete(id) {
         try {
             const data = await this.taskRepository.findOneBy({ taskId: id });

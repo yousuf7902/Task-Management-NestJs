@@ -45,6 +45,7 @@ export class TasksService {
       const task = this.taskRepository.create(createTaskDto);
       await this.taskRepository.save(task);
       return task;
+
     } catch (error) {
       throw error;
     }
@@ -90,7 +91,12 @@ export class TasksService {
 
   private isValidStatus(currentStatus: string, newStatus: string): boolean {
     try {
-      const allowedStatus = ["OPEN", "IN_PROGRESS", "DONE"];
+      const allowedStatus = [
+        "OPEN",
+        "IN_PROGRESS",
+        "DONE",
+      ];
+
       return (
         allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus)
       );
