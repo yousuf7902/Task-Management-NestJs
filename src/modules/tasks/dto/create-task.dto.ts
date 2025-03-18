@@ -16,5 +16,5 @@ export class CreateTaskDto {
 
     @IsNotEmpty()
     @IsEnum(TaskStatus)
-    status: TaskStatus
+    status: TaskStatus;
 }
