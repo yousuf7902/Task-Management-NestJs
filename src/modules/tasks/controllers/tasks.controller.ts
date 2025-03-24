@@ -16,14 +16,18 @@ import { TasksService } from "../services/tasks.service";
 import { CreateTaskDto } from "../dto/create-task.dto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
 import { sendResponse } from "src/utils/send-response.utils";
-import { send } from "process";
+import { ApiQuery} from "@nestjs/swagger";
 
 @Controller("tasks")
 export class TasksController {
   constructor(private readonly taskService: TasksService) {}
 
   @Get()
-  async getAllTasks(@Query("status") status: string,@Req() req: Request, @Res() res: Response) {
+  @ApiQuery({
+    name: 'status',
+    required: false,
+  })
+  async getAllTasks(@Query("status") status: string, @Req() req: Request, @Res() res: Response) {
     try {
       const data = await this.taskService.findAllTasks(status);
       if(!status){
@@ -34,7 +38,6 @@ export class TasksController {
       throw error;
     }
   }
-
 
   @Post()
   async createTasks(
