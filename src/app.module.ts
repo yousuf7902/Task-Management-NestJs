@@ -9,13 +9,14 @@ import { Task } from './modules/tasks/entities/task.entity';
 import { UsersModule } from './modules/users/users.module';
 import { UsersController } from './modules/users/controllers/users.controller';
 import { User } from './modules/users/entities/user.entity';
+import { TaskLabel } from './modules/tasks/entities/task-label.entity';
 
 
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal:true,
-  }), TypeOrmModule.forRoot(dbConfigService.getTypeOrmConfig()), TypeOrmModule.forFeature([Task, User]), TasksModule, UsersModule],
+  }), TypeOrmModule.forRoot(dbConfigService.getTypeOrmConfig()), TypeOrmModule.forFeature([Task, User, TaskLabel]), TasksModule, UsersModule],
   controllers: [TasksController, UsersController],
   providers: [TasksService],
 })
