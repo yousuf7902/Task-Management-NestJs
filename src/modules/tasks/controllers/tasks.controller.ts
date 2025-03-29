@@ -17,6 +17,8 @@ import { CreateTaskDto } from "../dto/create-task.dto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
 import { sendResponse } from "src/utils/send-response.utils";
 import { ApiQuery} from "@nestjs/swagger";
+import { CreateTaskLabelDto } from "../dto/create-task-label.dto";
+import { send } from "process";
 
 @Controller("tasks")
 export class TasksController {
@@ -54,6 +56,7 @@ export class TasksController {
     }
   }
 
+  
   @Get(":id")
   async getTaskById(
     @Param("id", ParseIntPipe) id: number,
@@ -68,7 +71,7 @@ export class TasksController {
       throw error;
     }
   }
-
+  
   @Put(":id")
   async updateTask(
     @Param("id", ParseIntPipe) id: number,
@@ -84,7 +87,7 @@ export class TasksController {
       throw error;
     }
   }
-
+  
   @Delete(":id")
   async deleteTask(
     @Param("id", ParseIntPipe) id: number,
@@ -94,6 +97,39 @@ export class TasksController {
     try{
       const data = await this.taskService.delete(id);
       sendResponse(res, 200, "Task deleted successfully...", data);
+    }
+    catch(error){
+      throw error;
+    }
+  }
+
+  @Get(":id/labels")
+  async getAllLabels (@Param("id", ParseIntPipe) id: number, @Req() req: Request, @Res() res: Response){
+    try{
+      const data = await this.taskService.getAllLabels(id);
+      sendResponse(res, 200, "Labels are fetched successfully...", data);
+    }
+    catch(error){
+      throw error;
+    }
+  }
+
+  @Post(':id/add-labels')
+  async createLabels(@Param("id", ParseIntPipe) id: number,@Body() createTaskLabelDto: CreateTaskLabelDto, @Req() req: Request, @Res() res: Response){
+    try{
+      const data = await this.taskService.addLabels(id, createTaskLabelDto);
+      sendResponse(res, 201, "Task Labels added successfully...", data);
+    }
+    catch(error){
+      throw error;
+    }
+  }
+
+  @Delete(":id/:labelId")
+  async deleteLabels(@Param('id', ParseIntPipe) id: number, @Param('labelId', ParseIntPipe) labelId: number, @Req() req: Request, @Res() res: Response){
+    try{
+      const data = await this.taskService.deleteTaskLabels(id, labelId);
+      sendResponse(res, 200, "Task-label deleted successfully...", data);
     }
     catch(error){
       throw error;

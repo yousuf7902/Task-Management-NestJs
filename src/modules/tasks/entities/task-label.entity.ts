@@ -17,4 +17,5 @@ export class TaskLabel{
     @Column({type: 'datetime', default: ()=> 'CURRENT_TIMESTAMP'})
     updatedAt: Date;
 
+
 }
