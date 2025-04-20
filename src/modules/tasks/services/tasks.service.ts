@@ -64,7 +64,22 @@ export class TasksService {
     }
   }
 
-  
+  async addTaskLables(id: number, createTaskLabelDto: CreateTaskLabelDto){
+    try{
+      console.log(id, createTaskLabelDto.labelName);
+      const task = await this.taskRepository.find({where:{taskId: id}});
+
+      if(!task){
+        throw new NotFoundException("Task not found...")
+      }
+
+      console.log(task);
+    }
+    catch(error){
+      throw error;
+    }
+  }
+
   async update(id: number, updateTaskDto: UpdateTaskDto) {
     try {
       const data = await this.taskRepository.findOneBy({ taskId: id });

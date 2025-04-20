@@ -18,7 +18,6 @@ import { UpdateTaskDto } from "../dto/update-task-dto";
 import { sendResponse } from "src/utils/send-response.utils";
 import { ApiQuery} from "@nestjs/swagger";
 import { CreateTaskLabelDto } from "../dto/create-task-label.dto";
-import { send } from "process";
 
 @Controller("tasks")
 export class TasksController {
@@ -56,7 +55,6 @@ export class TasksController {
     }
   }
 
-  
   @Get(":id")
   async getTaskById(
     @Param("id", ParseIntPipe) id: number,
