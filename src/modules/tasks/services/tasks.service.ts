@@ -15,13 +15,13 @@ export class TasksService {
     @InjectRepository(TaskLabel) private taskLabelRepository: Repository<TaskLabel>
   ) {}
 
-  async findAllTasks(status: string) {
+  async findAllTasks(status?: string) {
     try {
       if (!status) {
         const data = await this.taskRepository.find();
         return data;
       }
-      const tasks = await this.taskRepository.findBy({ status: status });
+      const tasks = await this.taskRepository.find({ where: {status: status}});
       if (tasks.length === 0) {
         throw new NotFoundException("Task not found....");
       }
@@ -60,22 +60,6 @@ export class TasksService {
       }
       return {task: savedTask, labels : uniqueLabels || []}
     } catch (error) {
-      throw error;
-    }
-  }
-
-  async addTaskLables(id: number, createTaskLabelDto: CreateTaskLabelDto){
-    try{
-      console.log(id, createTaskLabelDto.labelName);
-      const task = await this.taskRepository.find({where:{taskId: id}});
-
-      if(!task){
-        throw new NotFoundException("Task not found...")
-      }
-
-      console.log(task);
-    }
-    catch(error){
       throw error;
     }
   }

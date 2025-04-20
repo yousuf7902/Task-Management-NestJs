@@ -18,6 +18,7 @@ import { UpdateTaskDto } from "../dto/update-task-dto";
 import { sendResponse } from "src/utils/send-response.utils";
 import { ApiQuery} from "@nestjs/swagger";
 import { CreateTaskLabelDto } from "../dto/create-task-label.dto";
+import { TaskStatus } from "../model/task.model";
 
 @Controller("tasks")
 export class TasksController {
@@ -28,13 +29,17 @@ export class TasksController {
     name: 'status',
     required: false,
   })
-  async getAllTasks(@Query("status") status: string, @Req() req: Request, @Res() res: Response) {
+  async getAllTasks(@Query("status") status:  TaskStatus, @Req() req: Request, @Res() res: Response) {
     try {
-      const data = await this.taskService.findAllTasks(status);
-      if(!status){
-        sendResponse(res, 200, 'Data fetched successfully...', data);
+      const isEmpty = !status || status.trim() === '';
+
+      const data = isEmpty? await this.taskService.findAllTasks() : await this.taskService.findAllTasks(status);
+
+      if(data.length === 0) {
+        return sendResponse(res, 404, "No task found...");  
       }
-      sendResponse(res, 200, 'Task filtered successfully...', data);
+
+      sendResponse(res, 200, isEmpty? 'All tasked fetched successfully...': 'Task filtered successfully...', data);
     } catch (error) {
       throw error;
     }
@@ -129,7 +134,7 @@ export class TasksController {
       const data = await this.taskService.deleteTaskLabels(id, labelId);
       sendResponse(res, 200, "Task-label deleted successfully...", data);
     }
-    catch(error){
+    catch(error){ 
       throw error;
     }
   }
