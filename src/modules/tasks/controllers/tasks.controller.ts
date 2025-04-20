@@ -19,6 +19,7 @@ import { sendResponse } from "src/utils/send-response.utils";
 import { ApiQuery} from "@nestjs/swagger";
 import { CreateTaskLabelDto } from "../dto/create-task-label.dto";
 import { TaskStatus } from "../model/task.model";
+import { PaginationParams } from "src/common/pagination/pagination.params";
 
 @Controller("tasks")
 export class TasksController {
@@ -29,17 +30,27 @@ export class TasksController {
     name: 'status',
     required: false,
   })
-  async getAllTasks(@Query("status") status:  TaskStatus, @Req() req: Request, @Res() res: Response) {
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+  })
+  async getAllTasks(@Query("status") status:  TaskStatus, @Query() pagination : PaginationParams, @Req() req: Request, @Res() res: Response) {
     try {
-      const isEmpty = !status || status.trim() === '';
+      // const isEmpty = !status || status.trim() === '';
 
-      const data = isEmpty? await this.taskService.findAllTasks() : await this.taskService.findAllTasks(status);
+      // const data = isEmpty? await this.taskService.findAllTasks(pagination) : await this.taskService.findAllTasks(status, pagination);
 
-      if(data.length === 0) {
+      const data  = await this.taskService.findAllTasks(status, pagination);  
+
+      if(!data) {
         return sendResponse(res, 404, "No task found...");  
-      }
+      } 
 
-      sendResponse(res, 200, isEmpty? 'All tasked fetched successfully...': 'Task filtered successfully...', data);
+      sendResponse(res, 200, 'All tasked fetched successfully...', data);
     } catch (error) {
       throw error;
     }
@@ -69,7 +80,7 @@ export class TasksController {
     try{
       const data = await this.taskService.findById(id);
       sendResponse(res, 200, "Task fetched successfully...", data);
-    }
+    } 
     catch(error){
       throw error;
     }

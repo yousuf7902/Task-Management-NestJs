@@ -7,6 +7,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Task } from "../entities/task.entity";
 import { Repository } from "typeorm";
 import { TaskLabel } from "../entities/task-label.entity";
+import { PaginationParams } from 'src/common/pagination/pagination.params';
 
 @Injectable()
 export class TasksService {
@@ -15,17 +16,38 @@ export class TasksService {
     @InjectRepository(TaskLabel) private taskLabelRepository: Repository<TaskLabel>
   ) {}
 
-  async findAllTasks(status?: string) {
+  async findAllTasks(status?: string, pagination?: PaginationParams) {
     try {
       if (!status) {
-        const data = await this.taskRepository.find();
-        return data;
+        const tasks = await this.taskRepository.find({skip: pagination?.offset, take: pagination?.limit});
+
+        if(tasks.length === 0) {
+          throw new NotFoundException("Task not found....");
+        }
+
+        return {
+          data: [tasks],
+          meta: {
+            total: tasks.length,
+            ...pagination,
+          }
+        }
       }
-      const tasks = await this.taskRepository.find({ where: {status: status}});
+
+      const tasks = await this.taskRepository.find({ where: {status: status}, skip: pagination?.offset, take: pagination?.limit});
+
       if (tasks.length === 0) {
         throw new NotFoundException("Task not found....");
       }
-      return tasks;
+
+      return {
+        data: [tasks],
+        meta: {
+          total: tasks.length,
+          ...pagination,
+        }
+      };
+
     } catch (error) {
       throw error;
     }
