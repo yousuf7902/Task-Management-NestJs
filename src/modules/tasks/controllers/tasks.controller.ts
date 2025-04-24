@@ -44,9 +44,20 @@ export class TasksController {
     name: 'search',
     required: false,
   })
+  @ApiQuery({
+    name: 'labels',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+  })
   async getAllTasks(@Query() filters:  FindTaskParams, @Query() pagination : PaginationParams, @Req() req: Request, @Res() res: Response) {
     try {
-
       const data  = await this.taskService.findAllTasks(filters, pagination);   
 
       if(!data) {

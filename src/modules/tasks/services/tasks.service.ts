@@ -1,6 +1,6 @@
 import { TaskLabel } from './../entities/task-label.entity';
 import { CreateTaskLabelDto } from './../dto/create-task-label.dto';
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, Search } from "@nestjs/common";
 import { CreateTaskDto } from "../dto/create-task.dto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
 import { WrongTaskStatusException } from "src/exceptions/wrong-task-status-exception";
@@ -9,6 +9,7 @@ import { Task } from "../entities/task.entity";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
 import { PaginationParams } from 'src/common/pagination/pagination.params';
 import { FindTaskParams } from 'src/common/pagination/find-task.params';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class TasksService {
@@ -19,14 +20,13 @@ export class TasksService {
 
   async findAllTasks(filters: FindTaskParams, pagination?: PaginationParams) {
     try {
-
-      if (!filters.status && !filters.search?.trim()) {
+      if (!filters.status && !filters.search?.trim() && !filters.labels?.length) {
         const tasks = await this.taskRepository.find({skip: pagination?.offset, take: pagination?.limit});
-
+        
         if(tasks.length === 0) {
           throw new NotFoundException("Task not found....");
         }
-
+        
         return {
           data: [tasks],
           meta: {
@@ -35,33 +35,69 @@ export class TasksService {
           }
         }
       }
-
-      let where: FindOptionsWhere<Task> | FindOptionsWhere<Task>[] = {};
-
+      
+      const query = this.taskRepository.createQueryBuilder("task")
+      .leftJoinAndSelect("task.task_labels", "labels");
+      
       if(filters.status){
-        where.status = filters.status;
+        query.andWhere("task.status = :status", {
+          status: filters.status,
+        })
       }
-
+      
       if(filters.search){
-        where = [
-          { ...where, title: Like(`%${filters.search}%`) },
-          { ...where, description: Like(`%${filters.search}%`) }
-        ];
+        query.andWhere('(task.title LIKE :search OR task.description LIKE :search)', { search: `%${filters.search}%` })
+      } 
+
+      if (filters.labels?.length) {
+
+        const subQuery = query.subQuery().select("labels.taskId").from("task_label", "labels").where("labels.labelName IN (:...names)", {names: filters.labels}).getQuery();
+        
+        query.andWhere(`task.taskId IN ${subQuery}`);
+
+        // query.andWhere("labels.labelName IN (:...names)", {
+        //   names: filters.labels
+        // });
       }
 
-      const tasks = await this.taskRepository.find({ where , skip: pagination?.offset, take: pagination?.limit});
+      query.orderBy(`task.${filters.sortBy}`, filters.sortOrder);
 
-      if (tasks.length === 0) {
+      query.skip(pagination?.offset).take(pagination?.limit);
+
+      const tasks = await query.getManyAndCount();
+
+      if(tasks[1] === 0) { 
         throw new NotFoundException("Task not found....");
       }
 
-      return {
-        data: [tasks],
-        meta: {
-          total: tasks.length,
-          ...pagination,
-        }
-      };
+      return query.getManyAndCount();
+
+      // let where: FindOptionsWhere<Task> | FindOptionsWhere<Task>[] = {};
+
+      // if(filters.status){
+      //   where.status = filters.status;
+      // }
+
+      // if(filters.search){
+      //   where = [
+      //     { ...where, title: Like(`%${filters.search}%`) },
+      //     { ...where, description: Like(`%${filters.search}%`) }
+      //   ];
+      // }
+
+      // const tasks = await this.taskRepository.find({ where , skip: pagination?.offset, take: pagination?.limit});
+
+      // if (tasks.length === 0) {
+      //   throw new NotFoundException("Task not found....");
+      // }
+
+      // return {
+      //   data: [tasks],
+      //   meta: {
+      //     total: tasks.length,
+      //     ...pagination,
+      //   }
+      // };
 
     } catch (error) {
       throw error;
