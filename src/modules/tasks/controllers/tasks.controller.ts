@@ -20,6 +20,8 @@ import { ApiQuery} from "@nestjs/swagger";
 import { CreateTaskLabelDto } from "../dto/create-task-label.dto";
 import { TaskStatus } from "../model/task.model";
 import { PaginationParams } from "src/common/pagination/pagination.params";
+import { FindTaskParams } from "src/common/pagination/find-task.params";
+import { filter } from "rxjs";
 
 @Controller("tasks")
 export class TasksController {
@@ -38,13 +40,14 @@ export class TasksController {
     name: 'offset',
     required: false,
   })
-  async getAllTasks(@Query("status") status:  TaskStatus, @Query() pagination : PaginationParams, @Req() req: Request, @Res() res: Response) {
+  @ApiQuery({
+    name: 'search',
+    required: false,
+  })
+  async getAllTasks(@Query() filters:  FindTaskParams, @Query() pagination : PaginationParams, @Req() req: Request, @Res() res: Response) {
     try {
-      // const isEmpty = !status || status.trim() === '';
 
-      // const data = isEmpty? await this.taskService.findAllTasks(pagination) : await this.taskService.findAllTasks(status, pagination);
-
-      const data  = await this.taskService.findAllTasks(status, pagination);  
+      const data  = await this.taskService.findAllTasks(filters, pagination);   
 
       if(!data) {
         return sendResponse(res, 404, "No task found...");  
@@ -100,7 +103,7 @@ export class TasksController {
     catch(error){
       throw error;
     }
-  }
+  } 
   
   @Delete(":id")
   async deleteTask(
@@ -149,4 +152,5 @@ export class TasksController {
       throw error;
     }
   }
+
 }
