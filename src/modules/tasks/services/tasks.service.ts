@@ -1,5 +1,9 @@
-import { CreateTaskLabelDto } from './../dto/create-task-label.dto';
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { CreateTaskLabelDto } from "./../dto/create-task-label.dto";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateTaskDto } from "../dto/create-task.dto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
 import { WrongTaskStatusException } from "src/exceptions/wrong-task-status-exception";
@@ -12,7 +16,8 @@ import { TaskLabel } from "../entities/task-label.entity";
 export class TasksService {
   constructor(
     @InjectRepository(Task) private taskRepository: Repository<Task>,
-    @InjectRepository(TaskLabel) private taskLabelRepository: Repository<TaskLabel>
+    @InjectRepository(TaskLabel)
+    private taskLabelRepository: Repository<TaskLabel>
   ) {}
 
   async findAllTasks(status: string) {
@@ -45,52 +50,51 @@ export class TasksService {
 
   async create(createTaskDto: CreateTaskDto) {
     try {
-      const {taskLabels, ...taskData } = createTaskDto;
-      const uniqueLabels = [...new Set(taskLabels) || []];
+      const { taskLabels, ...taskData } = createTaskDto;
+      const uniqueLabels = [...(new Set(taskLabels) || [])];
       const newTask = await this.taskRepository.create(taskData);
       const savedTask = await this.taskRepository.save(newTask);
 
-      if(uniqueLabels && uniqueLabels.length>0){
-        const taskLabelsInsert= uniqueLabels.map((labelName) => ({
-          taskId : savedTask.taskId,
-          labelName
-        }))
+      if (uniqueLabels && uniqueLabels.length > 0) {
+        const taskLabelsInsert = uniqueLabels.map((labelName) => ({
+          taskId: savedTask.taskId,
+          labelName,
+        }));
 
         await this.taskLabelRepository.insert(taskLabelsInsert);
       }
-      return {task: savedTask, labels : uniqueLabels || []}
+      return { task: savedTask, labels: uniqueLabels || [] };
     } catch (error) {
       throw error;
     }
   }
 
-  
   async update(id: number, updateTaskDto: UpdateTaskDto) {
     try {
       const data = await this.taskRepository.findOneBy({ taskId: id });
-      
+
       if (!data) {
         throw new NotFoundException("Task not found...");
       }
-      
+
       if (
         updateTaskDto.status &&
         !this.isValidStatus(data.status, updateTaskDto.status)
       ) {
         throw new WrongTaskStatusException();
       }
-      
+
       const updateTask = await this.taskRepository.save({
         ...data,
         ...updateTaskDto,
       });
-      
+
       return updateTask;
     } catch (error) {
       throw error;
     }
   }
-  
+
   async delete(id: number) {
     try {
       const data = await this.taskRepository.findOneBy({ taskId: id });
@@ -102,70 +106,73 @@ export class TasksService {
       throw error;
     }
   }
-  
+
   // Task Labels Codes
-  async getAllLabels(id: number){
-    try{
-      const allLabels = await this.taskLabelRepository.find({where: {taskId: id}});
-  
-      if(!allLabels){
+  async getAllLabels(id: number) {
+    try {
+      const allLabels = await this.taskLabelRepository.find({
+        where: { taskId: id },
+      });
+
+      if (!allLabels) {
         throw new NotFoundException("Label are not found for this task...");
       }
-  
+
       return allLabels;
-    }
-    catch(error){
+    } catch (error) {
       throw error;
     }
   }
 
-  async addLabels(id: number, createTaskLabelDto:CreateTaskLabelDto){
-    try{
-      const task = await this.taskRepository.findOneBy({taskId:id});
-      if(!task){
+  async addLabels(id: number, createTaskLabelDto: CreateTaskLabelDto) {
+    try {
+      const task = await this.taskRepository.findOneBy({ taskId: id });
+      if (!task) {
         throw new NotFoundException("Task is not found");
       }
-      const labels = await this.taskLabelRepository.find({where: {taskId: id}});
-      const isExistLabel = labels.some((label) => label.labelName === createTaskLabelDto.labelName);
-      if(isExistLabel){
+      const labels = await this.taskLabelRepository.find({
+        where: { taskId: id },
+      });
+      const isExistLabel = labels.some(
+        (label) => label.labelName === createTaskLabelDto.labelName
+      );
+      if (isExistLabel) {
         throw new BadRequestException("Task labels already exists...");
       }
-  
+
       const saveLabels = await this.taskLabelRepository.save({
         ...createTaskLabelDto,
-        taskId: id
-      })
-  
+        taskId: id,
+      });
+
       return saveLabels;
-    }
-    catch(error){
+    } catch (error) {
       throw error;
     }
   }
 
-  async deleteTaskLabels(id: number, labelId : number){
-    try{
-      const taskLabel = await this.taskLabelRepository.findOne({where:{taskId: id, labelId: labelId}});
-  
-      if(!taskLabel){
-        throw new NotFoundException("Task label is not exists....")
+  async deleteTaskLabels(id: number, labelId: number) {
+    try {
+      const taskLabel = await this.taskLabelRepository.findOne({
+        where: { taskId: id, labelId: labelId },
+      });
+
+      if (!taskLabel) {
+        throw new NotFoundException("Task label is not exists....");
       }
-  
-      return await this.taskLabelRepository.delete({taskId: id, labelId: labelId});
-    }
-    catch(error){
+
+      return await this.taskLabelRepository.delete({
+        taskId: id,
+        labelId: labelId,
+      });
+    } catch (error) {
       throw error;
     }
   }
-
 
   private isValidStatus(currentStatus: string, newStatus: string): boolean {
     try {
-      const allowedStatus = [
-        "OPEN",
-        "IN_PROGRESS",
-        "DONE",
-      ];
+      const allowedStatus = ["OPEN", "IN_PROGRESS", "DONE"];
 
       return (
         allowedStatus.indexOf(currentStatus) <= allowedStatus.indexOf(newStatus)
