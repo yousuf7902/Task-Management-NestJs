@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString, MaxLength } from "class-validator";
+import { IsArray, IsInt, IsNotEmpty, IsString, MaxLength } from "class-validator";
 
 export class CreateTaskLabelDto{
     @IsString()

@@ -18,7 +18,10 @@ import { UpdateTaskDto } from "../dto/update-task-dto";
 import { sendResponse } from "src/utils/send-response.utils";
 import { ApiQuery} from "@nestjs/swagger";
 import { CreateTaskLabelDto } from "../dto/create-task-label.dto";
-import { send } from "process";
+import { TaskStatus } from "../model/task.model";
+import { PaginationParams } from "src/common/pagination/pagination.params";
+import { FindTaskParams } from "src/common/pagination/find-task.params";
+import { filter } from "rxjs";
 
 @Controller("tasks")
 export class TasksController {
@@ -29,13 +32,39 @@ export class TasksController {
     name: 'status',
     required: false,
   })
-  async getAllTasks(@Query("status") status: string, @Req() req: Request, @Res() res: Response) {
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'labels',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+  })
+  async getAllTasks(@Query() filters:  FindTaskParams, @Query() pagination : PaginationParams, @Req() req: Request, @Res() res: Response) {
     try {
-      const data = await this.taskService.findAllTasks(status);
-      if(!status){
-        sendResponse(res, 200, 'Data fetched successfully...', data);
-      }
-      sendResponse(res, 200, 'Task filtered successfully...', data);
+      const data  = await this.taskService.findAllTasks(filters, pagination);   
+
+      if(!data) {
+        return sendResponse(res, 404, "No task found...");  
+      } 
+
+      sendResponse(res, 200, 'All tasked fetched successfully...', data);
     } catch (error) {
       throw error;
     }
@@ -56,7 +85,6 @@ export class TasksController {
     }
   }
 
-  
   @Get(":id")
   async getTaskById(
     @Param("id", ParseIntPipe) id: number,
@@ -66,7 +94,7 @@ export class TasksController {
     try{
       const data = await this.taskService.findById(id);
       sendResponse(res, 200, "Task fetched successfully...", data);
-    }
+    } 
     catch(error){
       throw error;
     }
@@ -86,7 +114,7 @@ export class TasksController {
     catch(error){
       throw error;
     }
-  }
+  } 
   
   @Delete(":id")
   async deleteTask(
@@ -131,8 +159,9 @@ export class TasksController {
       const data = await this.taskService.deleteTaskLabels(id, labelId);
       sendResponse(res, 200, "Task-label deleted successfully...", data);
     }
-    catch(error){
+    catch(error){ 
       throw error;
     }
   }
+
 }

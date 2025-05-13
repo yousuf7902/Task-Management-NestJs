@@ -1,16 +1,15 @@
-import { CreateTaskLabelDto } from "./../dto/create-task-label.dto";
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { TaskLabel } from './../entities/task-label.entity';
+import { CreateTaskLabelDto } from './../dto/create-task-label.dto';
+import { BadRequestException, Injectable, NotFoundException, Search } from "@nestjs/common";
 import { CreateTaskDto } from "../dto/create-task.dto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
 import { WrongTaskStatusException } from "src/exceptions/wrong-task-status-exception";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Task } from "../entities/task.entity";
-import { Repository } from "typeorm";
-import { TaskLabel } from "../entities/task-label.entity";
+import { FindOptionsWhere, Like, Repository } from "typeorm";
+import { PaginationParams } from 'src/common/pagination/pagination.params';
+import { FindTaskParams } from 'src/common/pagination/find-task.params';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class TasksService {
@@ -20,17 +19,87 @@ export class TasksService {
     private taskLabelRepository: Repository<TaskLabel>
   ) {}
 
-  async findAllTasks(status: string) {
+  async findAllTasks(filters: FindTaskParams, pagination?: PaginationParams) {
     try {
-      if (!status) {
-        const data = await this.taskRepository.find();
-        return data;
+      if (!filters.status && !filters.search?.trim() && !filters.labels?.length) {
+        const tasks = await this.taskRepository.find({skip: pagination?.offset, take: pagination?.limit});
+        
+        if(tasks.length === 0) {
+          throw new NotFoundException("Task not found....");
+        }
+        
+        return {
+          data: [tasks],
+          meta: {
+            total: tasks.length,
+            ...pagination,
+          }
+        }
       }
-      const tasks = await this.taskRepository.findBy({ status: status });
-      if (tasks.length === 0) {
+      
+      const query = this.taskRepository.createQueryBuilder("task")
+      .leftJoinAndSelect("task.task_labels", "labels");
+      
+      if(filters.status){
+        query.andWhere("task.status = :status", {
+          status: filters.status,
+        })
+      }
+      
+      if(filters.search){
+        query.andWhere('(task.title LIKE :search OR task.description LIKE :search)', { search: `%${filters.search}%` })
+      } 
+
+      if (filters.labels?.length) {
+
+        const subQuery = query.subQuery().select("labels.taskId").from("task_label", "labels").where("labels.labelName IN (:...names)", {names: filters.labels}).getQuery();
+        
+        query.andWhere(`task.taskId IN ${subQuery}`);
+
+        // query.andWhere("labels.labelName IN (:...names)", {
+        //   names: filters.labels
+        // });
+      }
+
+      query.orderBy(`task.${filters.sortBy}`, filters.sortOrder);
+
+      query.skip(pagination?.offset).take(pagination?.limit);
+
+      const tasks = await query.getManyAndCount();
+
+      if(tasks[1] === 0) { 
         throw new NotFoundException("Task not found....");
       }
-      return tasks;
+
+      return query.getManyAndCount();
+
+      // let where: FindOptionsWhere<Task> | FindOptionsWhere<Task>[] = {};
+
+      // if(filters.status){
+      //   where.status = filters.status;
+      // }
+
+      // if(filters.search){
+      //   where = [
+      //     { ...where, title: Like(`%${filters.search}%`) },
+      //     { ...where, description: Like(`%${filters.search}%`) }
+      //   ];
+      // }
+
+      // const tasks = await this.taskRepository.find({ where , skip: pagination?.offset, take: pagination?.limit});
+
+      // if (tasks.length === 0) {
+      //   throw new NotFoundException("Task not found....");
+      // }
+
+      // return {
+      //   data: [tasks],
+      //   meta: {
+      //     total: tasks.length,
+      //     ...pagination,
+      //   }
+      // };
+
     } catch (error) {
       throw error;
     }
@@ -55,13 +124,15 @@ export class TasksService {
       const newTask = await this.taskRepository.create(taskData);
       const savedTask = await this.taskRepository.save(newTask);
 
-      if (uniqueLabels && uniqueLabels.length > 0) {
-        const taskLabelsInsert = uniqueLabels.map((labelName) => ({
-          taskId: savedTask.taskId,
-          labelName,
-        }));
+      if(uniqueLabels && uniqueLabels.length>0){
+        const taskLabels = uniqueLabels.map(labelName => {
+          return this.taskLabelRepository.create({
+            labelName,
+            task: savedTask,
+          });
+        });
 
-        await this.taskLabelRepository.insert(taskLabelsInsert);
+        await this.taskLabelRepository.save(taskLabels);
       }
       return { task: savedTask, labels: uniqueLabels || [] };
     } catch (error) {
@@ -106,20 +177,20 @@ export class TasksService {
       throw error;
     }
   }
+  
+//   // Task Labels Codes
+  async getAllLabels(id: number){
+    try{
+      const allLabels = await this.taskRepository.findOne({
+        where: {taskId: id}});
 
-  // Task Labels Codes
-  async getAllLabels(id: number) {
-    try {
-      const allLabels = await this.taskLabelRepository.find({
-        where: { taskId: id },
-      });
+        if(!allLabels?.task_labels || allLabels?.task_labels.length === 0){
+          throw new NotFoundException("Task labels are not found....");
+        }
 
-      if (!allLabels) {
-        throw new NotFoundException("Label are not found for this task...");
-      }
-
-      return allLabels;
-    } catch (error) {
+      return allLabels.task_labels;
+    }
+    catch(error){
       throw error;
     }
   }
@@ -130,42 +201,40 @@ export class TasksService {
       if (!task) {
         throw new NotFoundException("Task is not found");
       }
-      const labels = await this.taskLabelRepository.find({
-        where: { taskId: id },
-      });
-      const isExistLabel = labels.some(
-        (label) => label.labelName === createTaskLabelDto.labelName
-      );
-      if (isExistLabel) {
+      
+      const isExistLabel = task.task_labels.some((label) => label.labelName === createTaskLabelDto.labelName);
+
+      if(isExistLabel){
         throw new BadRequestException("Task labels already exists...");
       }
 
       const saveLabels = await this.taskLabelRepository.save({
-        ...createTaskLabelDto,
-        taskId: id,
-      });
-
+        labelName: createTaskLabelDto.labelName,
+        task: task,
+      })
+  
       return saveLabels;
     } catch (error) {
       throw error;
     }
   }
 
-  async deleteTaskLabels(id: number, labelId: number) {
-    try {
+  async deleteTaskLabels(id: number, labelId : number){
+    try{
       const taskLabel = await this.taskLabelRepository.findOne({
-        where: { taskId: id, labelId: labelId },
+        where: {
+          labelId: labelId,
+          task: { taskId: id },
+        },
       });
 
-      if (!taskLabel) {
-        throw new NotFoundException("Task label is not exists....");
+      if(!taskLabel){
+        throw new NotFoundException("Task label is not exists....")
       }
-
-      return await this.taskLabelRepository.delete({
-        taskId: id,
-        labelId: labelId,
-      });
-    } catch (error) {
+  
+      return await this.taskLabelRepository.delete(taskLabel);
+    }
+    catch(error){
       throw error;
     }
   }
