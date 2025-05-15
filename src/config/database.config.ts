@@ -1,3 +1,4 @@
+import { Type } from '@nestjs/common';
 import {TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 

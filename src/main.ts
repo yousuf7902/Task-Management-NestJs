@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { LoggerService } from "./utils/logger.util";
@@ -10,7 +13,7 @@ async function bootstrap() {
 
   const logger = new LoggerService();
 
-  app.setGlobalPrefix(process.env.API_GLOBAL_PREFIX as string)
+  app.setGlobalPrefix(process.env.API_GLOBAL_PREFIX as string);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -24,13 +27,31 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle("Task API")
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        name: "Authorization",
+        description: "Enter JWT token",
+        in: "header",
+      },
+      "JWT-auth"
+    )
     .setDescription("The task API description")
     .setVersion("1.0")
     .addTag("ALL API")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("task-api", app, document);
+  SwaggerModule.setup("task-api", app, document, {
+    swaggerOptions: {
+      docExpansion: "none",
+      filter: true,
+      showRequestDuration: true,
+      persistAuthorization: true,
+    },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
   logger.log(`Application is running on: ${await app.getUrl()}`);

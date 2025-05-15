@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { User } from '../entities/user.entity';
 import { PasswordService } from '../password/password.service';
+import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -31,23 +32,25 @@ export class AuthService {
     }
 
     private async generateToken(user:User){
-        const payload = {id: user.userId, name: user.name};
-        const token = await this.jwtService.sign(payload);
-        return token;
+        const payload = {userId: user.userId, name: user.name};
+        const token = this.jwtService.sign(payload,  {
+            secret: process.env.JWT_SECRET_KEY,
+          }); 
+        return "Bearer " + token;   
     }
 
     public async loginUser(email: string, password:string){
         try{
             const user = await this.userService.findOneByEmail(email);
-
+            
             if(!user){
                 throw new Error("User not found...");
             }
-
+            
             const isPasswordValid = await this.passwordService.verify(password, user.password);
 
             if(!isPasswordValid){
-                throw new Error("Invalid password...");
+                throw new BadRequestException("Invalid password...");
             }
 
             const token = await this.generateToken(user);

@@ -51,4 +51,14 @@ export class UsersService {
         }
     }
 
+    public async findAll(){
+        try{
+            const users = await this.userRepository.find();
+            return users;
+        }
+        catch(error){
+            throw error;
+        }
+    }
+
 }

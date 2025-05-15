@@ -1,6 +1,7 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { TaskStatus } from "../model/task.model";
 import { TaskLabel } from "./task-label.entity";
+import { User } from "src/modules/users/entities/user.entity";
 
 @Entity("tasks")
 export class Task {
