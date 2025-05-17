@@ -8,6 +8,9 @@ import { LoginDto } from "../dto/login.dto";
 import { AuthGuard } from "./auth.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { GetUser } from "src/common/decorators/user.decorator";
+import { Role } from "../role.enum";
+import { Roles } from "src/common/decorators/roles.decorator";
+import { RolesGuard } from "../roles.guard";
 
 @Controller("auth")
 @UseInterceptors(ClassSerializerInterceptor)
@@ -52,6 +55,17 @@ export class AuthController {
       }
 
       sendResponse(res, 200, "User found...", { accessToken });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get("admin")
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async adminOnly(@Req() req: Request, @Res() res: Response,   @GetUser() user: any) {
+    try {
+      sendResponse(res, 200, "Admin only route...");
     } catch (error) {
       throw error;
     }

@@ -1,6 +1,7 @@
 import { Expose } from "class-transformer";
 import { Task } from "src/modules/tasks/entities/task.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Role } from "../role.enum";
 
 @Entity('users')
 export class User {
@@ -18,6 +19,10 @@ export class User {
 
     @Column({type: 'varchar', nullable: false})
     password: string;   
+
+    @Column({type: "enum", enum: Role, array: true, default: Role.USER})
+    @Expose( )
+    roles: Role [];
 
     @Column({type:'datetime', default : () => 'CURRENT_TIMESTAMP'})
     @Expose()

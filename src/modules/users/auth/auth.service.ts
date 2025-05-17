@@ -5,6 +5,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { User } from '../entities/user.entity';
 import { PasswordService } from '../password/password.service';
 import { error } from 'console';
+import { create } from 'domain';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +33,7 @@ export class AuthService {
     }
 
     private async generateToken(user:User){
-        const payload = {userId: user.userId, name: user.name};
+        const payload = {userId: user.userId, name: user.name, roles: user.roles};
         const token = this.jwtService.sign(payload,  {
             secret: process.env.JWT_SECRET_KEY,
           }); 

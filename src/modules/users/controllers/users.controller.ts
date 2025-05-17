@@ -12,19 +12,19 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 export class UsersController {
     constructor(private readonly userService: UsersService){}
     
-    @Post("create")
-    async createUser(@Req() req: Request, @Res() res: Response, createUserDto: CreateUserDto){
-        try{
-            const data = await this.userService.userCreate(createUserDto);
-            if(!data){
-                return sendResponse(res,  404 , "User not created...")
-            }
-            sendResponse(res, 200, "User created...", data);
-        }
-        catch(error){
-            throw error;
-        }
-    }
+    // @Post("create")
+    // async createUser(@Req() req: Request, @Res() res: Response, createUserDto: CreateUserDto){
+    //     try{
+    //         const data = await this.userService.userCreate(createUserDto);
+    //         if(!data){
+    //             return sendResponse(res,  404 , "User not created...")
+    //         }
+    //         sendResponse(res, 200, "User created...", data);
+    //     }
+    //     catch(error){
+    //         throw error;
+    //     }
+    // }
 
     @Get()
     async getAllUsers(@Req() req: Request, @Res() res: Response){
@@ -72,18 +72,18 @@ export class UsersController {
         }
     }
 
-    @Get(":id")
-    async getUserById(@Req() req: Request, @Res() res: Response, @Param("id", ParseIntPipe) id:number){
-        try{
-            const data = await this.userService.findOneById(id);
+    // @Get(":id")
+    // async getUserById(@Req() req: Request, @Res() res: Response, @Param("id", ParseIntPipe) id:number){
+    //     try{
+    //         const data = await this.userService.findOneById(id);
     
-            if(!data){
-                return sendResponse(res,  404 , "User not found...")
-            }
-            sendResponse(res, 200, "User found...", data);
-        }
-        catch(error){
-            throw error;
-        }
-    }
+    //         if(!data){
+    //             return sendResponse(res,  404 , "User not found...")
+    //         }
+    //         sendResponse(res, 200, "User found...", data);
+    //     }
+    //     catch(error){
+    //         throw error;
+    //     }
+    // }
 }
