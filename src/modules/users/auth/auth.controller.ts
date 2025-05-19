@@ -60,16 +60,4 @@ export class AuthController {
     }
   }
 
-  @Get("admin")
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  async adminOnly(@Req() req: Request, @Res() res: Response,   @GetUser() user: any) {
-    try {
-      sendResponse(res, 200, "Admin only route...");
-    } catch (error) {
-      throw error;
-    }
-  }
-
-
 }

@@ -27,7 +27,9 @@ export class UsersController {
     // }
 
     @Get()
-    async getAllUsers(@Req() req: Request, @Res() res: Response){
+    @UseGuards(AuthGuard)   
+    @ApiBearerAuth('JWT-auth')
+    async getAllUsers(@Req() req: Request, @Res() res: Response, @GetUser() user: any){
         try{
             const data = await this.userService.findAll();
             if(!data){

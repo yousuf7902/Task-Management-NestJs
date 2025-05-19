@@ -22,8 +22,8 @@ export class FindTaskParams {
     labels?: string[];
 
     @IsOptional()
-    @IsIn(['title', 'status'])
-    sortBy?: string;
+    @IsEnum(['title', 'status'])
+    sortBy?: string = "title";
 
     @IsOptional()
     @IsEnum(["ASC", "DESC"])

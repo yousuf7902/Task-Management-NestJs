@@ -10,19 +10,24 @@ import {
   Query,
   Req,
   Res,
+  UseGuards,
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { TasksService } from "../services/tasks.service";
 import { CreateTaskDto } from "../dto/create-task.dto";
 import { UpdateTaskDto } from "../dto/update-task-dto";
 import { sendResponse } from "src/utils/send-response.utils";
-import { ApiQuery} from "@nestjs/swagger";
+import { ApiBearerAuth, ApiQuery} from "@nestjs/swagger";
 import { CreateTaskLabelDto } from "../dto/create-task-label.dto";
 import { TaskStatus } from "../model/task.model";
 import { PaginationParams } from "src/common/pagination/pagination.params";
 import { FindTaskParams } from "src/common/pagination/find-task.params";
 import { filter } from "rxjs";
+import { AuthGuard } from "src/modules/users/auth/auth.guard";
+import { GetUser } from "src/common/decorators/user.decorator";
 
+@UseGuards(AuthGuard)
+@ApiBearerAuth('JWT-auth')
 @Controller("tasks")
 export class TasksController {
   constructor(private readonly taskService: TasksService) {}
@@ -56,9 +61,9 @@ export class TasksController {
     name: 'sortOrder',
     required: false,
   })
-  async getAllTasks(@Query() filters:  FindTaskParams, @Query() pagination : PaginationParams, @Req() req: Request, @Res() res: Response) {
+  async getAllTasks(@Query() filters:  FindTaskParams, @Query() pagination : PaginationParams, @Req() req: Request, @Res() res: Response, @GetUser() user: any) {
     try {
-      const data  = await this.taskService.findAllTasks(filters, pagination);   
+      const data  = await this.taskService.findAllTasks(filters, pagination, user);   
 
       if(!data) {
         return sendResponse(res, 404, "No task found...");  
@@ -74,10 +79,11 @@ export class TasksController {
   async createTasks(
     @Body() createTaskDto: CreateTaskDto,
     @Res() req: Request,
-    @Res() res: Response
+    @Res() res: Response,
+    @GetUser() user: any
   ) {
     try {
-      const data = await this.taskService.create(createTaskDto);
+      const data = await this.taskService.create(createTaskDto, user);
       sendResponse(res, 201, "Task created successfully...", data);
     }
     catch(error){
@@ -105,10 +111,11 @@ export class TasksController {
     @Param("id", ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
     @Req() req: Request,
-    @Res() res: Response
+    @Res() res: Response,
+    @GetUser() user: any  
   ) {
     try{
-      const data = await this.taskService.update(id, updateTaskDto);
+      const data = await this.taskService.update(id, updateTaskDto, user);
       sendResponse(res, 200, "Task updated successfully...",data);
     }
     catch(error){
