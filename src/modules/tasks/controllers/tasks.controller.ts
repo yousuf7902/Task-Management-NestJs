@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseIntPipe,
@@ -25,6 +27,7 @@ import { FindTaskParams } from "src/common/pagination/find-task.params";
 import { filter } from "rxjs";
 import { AuthGuard } from "src/modules/users/auth/auth.guard";
 import { GetUser } from "src/common/decorators/user.decorator";
+import { Task } from "../entities/task.entity";
 
 @UseGuards(AuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -170,5 +173,4 @@ export class TasksController {
       throw error;
     }
   }
-
 }

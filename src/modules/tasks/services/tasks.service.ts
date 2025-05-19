@@ -2,6 +2,7 @@ import { TaskLabel } from "./../entities/task-label.entity";
 import { CreateTaskLabelDto } from "./../dto/create-task-label.dto";
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   Search,
@@ -57,7 +58,8 @@ export class TasksService {
 
       const query = this.taskRepository
         .createQueryBuilder("tasks")
-        .leftJoinAndSelect("tasks.task_labels", "labels");
+        .leftJoinAndSelect("tasks.task_labels", "labels")
+        .where('tasks.userId = :userId', { userId: user.userId });
 
       if (filters.status) {
         query.andWhere("tasks.status = :status", {
@@ -87,7 +89,7 @@ export class TasksService {
         // });
       }
 
-      query.andWhere(`tasks.userId`, user.userId);
+      // query.andWhere(`tasks.userId`, user.userId);
       query.orderBy(`tasks.${filters.sortBy}`, filters.sortOrder);
 
       query.skip(pagination?.offset).take(pagination?.limit);
@@ -183,6 +185,8 @@ export class TasksService {
       ) {
         throw new WrongTaskStatusException();
       }
+
+      this.checkOwnerShip(data, data.userId);
       
       updateTaskDto.userId = user.userId;
       const updateTask = await this.taskRepository.save({
@@ -202,6 +206,9 @@ export class TasksService {
       if (!data) {
         throw new NotFoundException();
       }
+
+      this.checkOwnerShip(data, data.userId); 
+
       return this.taskRepository.delete({ taskId: id });
     } catch (error) {
       throw error;
@@ -264,6 +271,8 @@ export class TasksService {
         throw new NotFoundException("Task label is not exists....");
       }
 
+      this.checkOwnerShip(taskLabel.task, taskLabel.task.userId);
+      
       return await this.taskLabelRepository.delete(taskLabel);
     } catch (error) {
       throw error;
@@ -281,4 +290,11 @@ export class TasksService {
       throw error;
     }
   }
+
+  private checkOwnerShip ( task: Task , user: any){
+    if(task.userId !== user.userId){
+      throw new ForbiddenException("You are not the owner of this task");
+    }
+  }
+
 }
